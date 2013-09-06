@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: Google CSE
-Plugin URI: http://wordpress.org/extend/plugins/google-cse/
-Description: Google powered search for your WordPress site or blog.
-Version: 1.0.6
-Author: Erik Eng
-Author URI: http://erikeng.se/
+Plugin Name: Google CSE XML https://developers.google.com/custom-search/docs/xml_results?hl=en&csw=1#Overview
+Plugin URI: http://wordpress.org/extend/plugins/google-cse-xml/
+Description: Google powered search for your WordPress site or blog based on Google XML API. Original by Erik Eng http://erikeng.se/
+Version: 1.0.0
+Author: Ryan Rose
+Author URI: http://fathom.net/
 License: GPLv2 or later
 */
 
@@ -14,7 +14,7 @@ License: GPLv2 or later
  *
  * @constant string GCSE_VERSION Plugin version
  */
-define('GCSE_VERSION', '1.0.6');
+define('GCSE_VERSION', '1.0.0');
 
 /**
  * Security
@@ -54,8 +54,7 @@ function gcse_request($test = false)
     global $wp_query;
     $options = get_option('gcse_options');
 
-    if(isset($options['key']) && $options['key'] &&
-        isset($options['id']) && $options['id']) {
+    if(isset($options['id']) && $options['id']) {
 
         // Build URL
         $num    = isset($wp_query->query_vars['posts_per_page']) &&
@@ -65,18 +64,17 @@ function gcse_request($test = false)
             $wp_query->query_vars['paged'] ?
             ($wp_query->query_vars['paged']-1)*$num+1 : 1;
         $params = http_build_query(array(
-            'key'         => trim($options['key']),
             'cx'          => trim($options['id']),
-            'alt'         => 'json',
+            'client' => 'google-csbe',
+	    'output' => 'xml_no_dtd',
             'num'         => $num,
             'start'       => $start,
-            'prettyPrint' => 'false',
             'q'     => get_search_query()));
-        $url    = 'https://www.googleapis.com/customsearch/v1?'.$params;
+        $url    = 'http://www.google.com/search?'.$params;
 
         // Check for and return cached response
         if($response = get_transient('gcse_'.md5($url))) {
-            return json_decode($response, true);
+            //return $response;
         }
 
         // Request response
@@ -85,11 +83,45 @@ function gcse_request($test = false)
                 array(array('reason' => $response->get_error_message()))));
         }
     }
-
+    $results = array(
+        'success' => false,
+        'time' => 0,
+        'num_results' => 0,
+        'num_results_total' => 0,
+        'items' => array(),
+        'query' => $query
+    );
     // Save and return new response
-    if(isset($response['body'])) {
-        set_transient('gcse_'.md5($url), $response['body'], 3600);
-        return json_decode($response['body'], true);
+    if ($response['response']['code'] == 200) {
+            $contents = $response['body'];
+
+            $xml = new SimpleXMLElement($contents);
+            if (!isset($xml->ERROR)) {
+                $results['success'] = true;
+                $results['time'] = (int)$xml->TM;
+                $results['num_results_total'] = (int)$xml->RES->M;
+                $results['start'] = (int)$xml->RES['SN'];
+                $results['end'] = (int)$xml->RES['EN'];
+                
+                if (isset($xml->RES->R)) {
+                        foreach ($xml->RES->R as $item) {
+                                $results['items'][] = array(
+                                        'num' => (string)$item['N'],
+                                        'link' => (string)$item->U,
+                                        'title' => (string)$item->T,
+                                        'desc' => (string)$item->S,
+                                        'mime' => (string)$item['MIME']
+                                );
+                        }
+                }
+                $results['num_results'] = count($results['items']);
+            }
+    }
+    
+    //cache response if not empty
+    if(!empty($results)) {
+        set_transient('gcse_'.md5($url), $results, 3600);
+        return $results;
     }
     else {
         return array();
@@ -155,8 +187,8 @@ function gcse_results($posts, $q) {
                         'post_author'    => '',
                         'post_date'      => '',
                         'post_status'    => 'published',
-                        'post_excerpt'   => $result['snippet'],
-                        'post_content'   => $result['htmlSnippet'],
+                        'post_excerpt'   => $result['desc'],
+                        'post_content'   => $result['desc'],
                         'guid'           => $result['link'],
                         'post_type'      => 'search',
                         'ID'             => 0,
@@ -179,13 +211,13 @@ function gcse_results($posts, $q) {
             // Update post count
             $wp_query->post_count = count($posts);
 
-            $wp_query->found_posts = $response['searchInformation']['totalResults'];
+            $wp_query->found_posts = $response['num_results_total'];
 
             // Pagination
             $posts_per_page = $wp_query->query_vars['posts_per_page'] < 11 ?
                 $wp_query->query_vars['posts_per_page'] : 10;
             $wp_query->max_num_pages = ceil(
-                $response['searchInformation']['totalResults'] /
+                $response['num_results_total'] /
                 $posts_per_page);
 
             // Apply filters

@@ -62,9 +62,8 @@ function gcse_options_page()
     $options  = get_option('gcse_options');
     $response = gcse_request();
     $errors   = array(
-        'keyInvalid'          => __('Invalid API key.'),
-        'invalid'             => __('Invalid Custom Search Engine ID.'),
-        'accessNotConfigured' => __('"Custom Search API" service isn\'t enabled in the APIs Console.'));
+        'invalid'             => __('Invalid Custom Search Engine ID.')
+    );
 
     if($response && isset($response['error'])) {
         $reason = $response['error']['errors'][0]['reason'];
@@ -94,13 +93,6 @@ function gcse_options_page()
                 <?php settings_fields('gcse_options'); ?>
 
                 <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row"><label for="gcse_options[key]">Google API key</label></th>
-                        <td>
-                            <input type="text" size="50" id="gcse_options[key]" name="gcse_options[key]" value="<?php echo isset($options['key']) ? $options['key'] : ''; ?>" /><br />
-                            <span class="description">Enable the Custom Search API and get your API key at <a href="https://code.google.com/apis/console/" title="Google APIs Console" target="_blank" />Google APIs Console</a>.</span>
-                        </td>
-                    </tr>
                     <tr valign="top">
                         <th scope="row"><label for="gcse_options[id]">Google Custom Search Engine</label></th>
                         <td>
