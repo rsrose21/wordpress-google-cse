@@ -1,8 +1,8 @@
-# WordPress Google CSE
+# WordPress Google CSE XML
 
-This is not another iframe embed or AJAX result listing plugin. Instead search results from your Google Custom Search Engine is served via WordPress search listing. No need to customize your theme or search box.
+This is a fork of [Google Custom Search Engine](https://github.com/ptz0n/wordpress-google-cse) using [Google Custom Search XML API](https://developers.google.com/custom-search/docs/xml_results?hl=en&csw=1). This version does not require a Google API key but does require a Google Custom Search Engine ID with a paid Business account. This is not another iframe embed or AJAX result listing plugin. Instead search results from your Google Custom Search Engine is served via WordPress search listing. No need to customize your theme or search box.
 
-__You'll need to get an [Google API key](https://code.google.com/apis/console/) and a [Google Custom Search Engine ID](https://www.google.com/cse/) for it to work.__
+__You'll need to get a [Google Custom Search Engine ID](https://www.google.com/cse/) and upgrade to a paid Business account.__
 
 ## Dependencies
 
@@ -18,16 +18,20 @@ __You'll need to get an [Google API key](https://code.google.com/apis/console/) 
 
 1. Place the plugin (`google-cse/` directory) in the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Enter and save your [Google API](https://code.google.com/apis/console/) key and [Google Custom Search Engine](https://www.google.com/cse/) ID.
+3. Enter and save your [Google Custom Search Engine](https://www.google.com/cse/) ID.
 4. You're done, celebrate with a cup of coffee?
 
 If you want to use images from the Google result in your search result (`search.php`) use `$post->cse_img` for image URL.
 
 ## Feedback and questions
 
-Found a bug or missing a feature? Don't hesitate to create a new issue on [GitHub](https://github.com/ptz0n/wordpress-google-cse/issues) or contact me [directly](https://github.com/ptz0n).
+Found a bug or missing a feature? Don't hesitate to create a new issue on [GitHub](https://github.com/rsrose21/wordpress-google-cse/issues) or contact me [directly](https://github.com/rsrose21).
 
 ## Credits
+
+* [Ryan Rose](https://github.com/rsrose21)
+
+## Original Credits
 
 * [Jonas Nordström](https://github.com/windyjonas)
 * [Andreas Karlsson](https://github.com/indiebytes)
@@ -37,29 +41,5 @@ Found a bug or missing a feature? Don't hesitate to create a new issue on [GitHu
 
 ## Changelog
 
-### 1.0.6
-* Excluded admin from search hook
-
-### 1.0.5
-* Added `Settings` link to Plugins index
-* Added option for disabling post matching
-
-### 1.0.4
-* Fixed memory leak caused by the query used to fetch posts by url.
-* Fixed post variables WordPress was looking for.
-* Fixed images returned by search results playing nicely.
-
-### 1.0.3
-* Added in featured images from Google results (use $post->cse_img for image URL)
-* Fixed pagination bug
-
-### 1.0.2
-* Added more descriptive error messages to admin
-* Disabled SSL check for `www.googleapis.com`.
-
-### 1.0.1
-* Using native WordPress methods for remote requests
-
 ### 1.0
-* Settings
-* Search result cache
+* Updated to use Google XML API
